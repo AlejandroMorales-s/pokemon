@@ -1,10 +1,21 @@
+import { useState } from "react";
+
 import { Layout } from "@/components/layouts";
-import React from "react";
+import { NoFavorites } from "@/components/ui";
+import { localFavorites } from "@/utils";
+import { Card, Grid } from "@nextui-org/react";
+import { FavoritesContainer } from "@/components/pokemon";
 
 const Favorites = () => {
+  const [favorites] = useState(localFavorites.pokemonsInFavorites());
+
   return (
     <Layout title="Favorites">
-      <h1>Favorites</h1>
+      {favorites.length > 0 ? (
+        <FavoritesContainer pokemonIds={favorites} />
+      ) : (
+        <NoFavorites />
+      )}
     </Layout>
   );
 };

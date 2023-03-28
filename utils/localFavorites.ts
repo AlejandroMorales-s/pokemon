@@ -22,4 +22,9 @@ const existsInFavorites = (id: number): boolean => {
   return favorites.includes(id);
 };
 
-export default { toggleFavorite, existsInFavorites };
+const pokemonsInFavorites = (): number[] => {
+  if (typeof window === "undefined") return []; // This is for SSR (Server Side Rendering
+  return JSON.parse(localStorage.getItem("favorites") || "[]");
+};
+
+export default { toggleFavorite, existsInFavorites, pokemonsInFavorites };
