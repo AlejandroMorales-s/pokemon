@@ -1,18 +1,31 @@
+import { FC, useState } from "react";
+
+import { GetStaticPaths, GetStaticProps } from "next";
+import { Button, Card, Container, Grid, Image, Text } from "@nextui-org/react";
+
+import { PokemonFullResponse } from "@/interfaces";
+import { localFavorites } from "@/utils";
 import { pokeApi } from "@/api";
 import { Layout } from "@/components/layouts";
-import { PokemonFullResponse } from "@/interfaces";
-import { Button, Card, Container, Grid, Image, Text } from "@nextui-org/react";
-import { GetStaticPaths, GetStaticProps } from "next";
-import { FC } from "react";
 
 interface PokemonProps {
   pokemon: PokemonFullResponse;
 }
 
 const Pokemon: FC<PokemonProps> = ({ pokemon }) => {
-  const { name, sprites } = pokemon;
+  const { name, sprites, id } = pokemon;
+
+  const [inFavorites, setInFavorites] = useState(
+    localFavorites.existsInFavorites(id)
+  );
+
+  const handleAddToFavorites = () => {
+    localFavorites.toggleFavorite(id);
+    setInFavorites(!inFavorites);
+  };
+
   return (
-    <Layout title="Pokemon">
+    <Layout title={name}>
       <Grid.Container css={{ marginTop: "5px" }} gap={2}>
         <Grid xs={12} sm={4}>
           <Card hoverable css={{ padding: "30px" }}>
@@ -36,8 +49,12 @@ const Pokemon: FC<PokemonProps> = ({ pokemon }) => {
               <Text h1 transform="capitalize">
                 {name}
               </Text>
-              <Button color="gradient" ghost>
-                Add to favorites
+              <Button
+                onClick={handleAddToFavorites}
+                color="gradient"
+                ghost={!inFavorites}
+              >
+                {inFavorites ? "Remove from favorites" : "Add to favorites"}
               </Button>
             </Card.Header>
             <Card.Body>
@@ -90,10 +107,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   const { data } = await pokeApi.get<PokemonFullResponse>(`/pokemon/${id}`);
 
-  const { name, sprites } = data;
-
   return {
-    props: { pokemon: { name, sprites } },
+    props: { pokemon: data },
   };
 };
 
