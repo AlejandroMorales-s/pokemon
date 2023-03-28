@@ -3,15 +3,16 @@ import { FC, useState } from "react";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { Button, Card, Container, Grid, Image, Text } from "@nextui-org/react";
 
-import { PokemonFullResponse } from "@/interfaces";
+import { PokemonFullResponse, PokemonListResponse } from "@/interfaces";
 import { getPokemonInfo, localFavorites } from "@/utils";
+import { pokeApi } from "@/api";
 import { Layout } from "@/components/layouts";
 
 interface PokemonProps {
   pokemon: PokemonFullResponse;
 }
 
-const Pokemon: FC<PokemonProps> = ({ pokemon }) => {
+const PokemonByName: FC<PokemonProps> = ({ pokemon }) => {
   const { name, sprites, id } = pokemon;
 
   const [inFavorites, setInFavorites] = useState(
@@ -92,23 +93,27 @@ const Pokemon: FC<PokemonProps> = ({ pokemon }) => {
   );
 };
 
-export const getStaticPaths: GetStaticPaths = async (ctx) => {
-  const pokemonsIds = [...Array(151)].map((value, index) => `${index + 1}`);
+export const getStaticPaths: GetStaticPaths = async () => {
+  const { data } = await pokeApi.get<PokemonListResponse>(`/pokemon?limit=151`);
+
+  const pokemonsName = data.results.map(({ name }) => ({
+    params: { name },
+  }));
 
   return {
-    paths: pokemonsIds.map((id) => ({ params: { id } })),
+    paths: pokemonsName,
     fallback: false,
   };
 };
 
-export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { id } = params as { id: string };
+export const getStaticProps: GetStaticProps = async (ctx) => {
+  const { name } = ctx.params as { name: string };
 
-  const pokemon = await getPokemonInfo(id);
+  const pokemon = await getPokemonInfo(name);
 
   return {
     props: { pokemon },
   };
 };
 
-export default Pokemon;
+export default PokemonByName;
